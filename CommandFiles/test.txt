@@ -1,0 +1,29 @@
+redirector = ThomasAPF
+resetter = R2G
+pathSeedChoice = randomturn
+trackingSpaceChoice = filepath
+trackingSpaceFilepath = TrackingSpaces/SingleSquare/square_four_obstacles.txt
+pathLength = 20
+randomSeed = 207360925
+newUser
+end
+
+redirector = ThomasAPF
+resetter = R2G
+pathSeedChoice = randomturn
+trackingSpaceChoice = filepath
+trackingSpaceFilepath = TrackingSpaces/SingleSquare/square_four_obstacles.txt
+pathLength = 20
+randomSeed = 207360926
+newUser
+end
+
+redirector = ThomasAPF
+resetter = R2G
+pathSeedChoice = randomturn
+trackingSpaceChoice = filepath
+trackingSpaceFilepath = TrackingSpaces/SingleSquare/square_four_obstacles.txt
+pathLength = 20
+randomSeed = 207360927
+newUser
+end
