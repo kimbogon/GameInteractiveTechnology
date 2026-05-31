@@ -1,217 +1,168 @@
 
+[omegafantasy/OpenRDW2: A Redirected Walking Evaluation Toolkit Supporting Multi-user online VR. An extended version of OpenRDW that supports some new features.](https://github.com/omegafantasy/OpenRDW2)
 
-## <center>OpenRDW 2: A Redirected Walking Evaluation Toolkit Supporting Multi-user online VR</center>
-
-<img src="Visuals/representative.png" alt="title" style="zoom: 150%;" />
-
-This project is a toolkit for evaluating **Redirected Walking** methods in virtual reality (VR).
-
-This toolkit is an extended version of [OpenRDW](https://github.com/yaoling1997/OpenRDW) that retains most of its features while introducing many upgrades. One of the most significant new features is that OpenRDW 2 supports the simulation of multi-user online VR scenario, that is, it supports the simulation of multiple users in different physical spaces while playing in a common virtual space. Such kind of online VR scenarios are becoming increasingly common with the development of cloud rendering technology and the Metaverse. To the best of our knowledge, this project is the first redirected walking simulation toolkit that supports this type of multi-user offsite online VR applications.
-
-In multi-user online VR applications, if everyone is not associated with others, the redirected walking strategy will not differ from single-user strategies. But if users' tasks are correlated, there will be new challenges to redirect users. An ideal online RDW strategy must make the locomotion opportunities of different users equal, regardless of different physical environment layouts. Otherwise, some online VR games, such as the multiplayer game “Red Light, Green Light”, will become unfair and even lose their playability.
-
-This code contains the implementation of the multi-user online RDW controller described in the paper [Multi-User Redirected Walking in Separate Physical Spaces for Online VR Scenarios](https://ieeexplore.ieee.org/document/10058042). This controller is designed for multi-user online VR scenarios and ensures that online users in separate physical spaces have the same number of resets and reset timings while reducing the number of resets for all users.
-
-This code retains most of the features of [OpenRDW], so we also highly recommend reading and using the original [OpenRDW] and [its wiki](https://github.com/yaoling1997/OpenRDW/wiki/Introduction).
-
+[Introduction · yaoling1997/OpenRDW Wiki](https://github.com/yaoling1997/OpenRDW/wiki/Introduction)
 
 ![gif](Visuals/main.gif)
 
+**실험 과정:**
+1. Redirector / Resetter 구현
+2. Tracking Space 설정
+3. Command File / Batch File 설정 (또는 에디터에서 Global Configuration 설정)
+4. Play
+5. 실험 결과 확인
 
 
-### Simple Setup
+## Project Structure
 
-This project was developed using Unity 2019.4.31f1. To get started, clone the project and open it.
+메인 씬: `Assets/OpenRDW/Scenes/OpenRDW Scene.unity`
 
-To use all the features, you will need to install two additional plugins: [PUN 2 - FREE](https://assetstore.unity.com/packages/tools/network/pun-2-free-119922) and the [SteamVR Plugin](https://assetstore.unity.com/packages/tools/integration/steamvr-plugin-32647). Simply download and import them using Unity's package manager when needed.
+스크립트 (.cs): `Assets/OpenRDW/Scripts/`
+- `Experiment`: 실험 관련 코드가 포함되어 있으며 실험 통계를 기록하는 역할을 담당합니다.
+- `Movement`: 아바타의 움직임을 제어하는 코드들이 있으며, 이 중 `MovementManager.cs`가 가장 핵심적인 파일입니다.
+- `Networking`: 네트워크 실험이 필요할 때 사용되는 PUN2 관련 코드들이 포함되어 있습니다.
+- `Others`: 이 프로젝트의 가장 중요한 파일인 `GlobalConfiguration.cs`가 위치해 있으며, 이를 통해 대부분의 매개변수를 설정하고 전체 실험 과정을 제어합니다.
+- `Redirection`: 여러 종류의 리다이렉터(Redirector)와 리세터(Resetter)가 구현되어 있으며, `RedirectionManager.cs`가 이들을 통합 관리합니다.
+- `Visualization`: Unity 씬 내부의 시각화 효과에 중점을 둔 코드들이 모여 있습니다.
 
-Once you have everything set up, open the ***OpenRDW Scene*** and start playing to see the visualized simulation process!
+실험 구성, 경로, 결과 데이터 등을 다루는 폴더들은 다음과 같습니다:
 
-
-### Project Structure
-
-The main ***OpenRDW Scene*** is located at `Assets/OpenRDW/Scenes/OpenRDW Scene.unity`.
-
-All scripts can be found in `Assets/OpenRDW/Scripts/`:
-The `Experiment` directory contains experiment-related codes and is responsible for logging experiment statistics. 
-The `Movement` directory contains codes that controls the motion of the avatars, and `MovementManager.cs` is the most important file of them. 
-The `Networking` directory contains codes that works with PUN2, which is only necessary if there are networking-experiment requirements. 
-The `Others` directory contains the key file in this project, `GlobalConfiguration.cs`, which configures most of the parameters and controls the entire experiment process. 
-The `Redirection` directory contains several implemented redirectors and resetters, with `RedirectionManager.cs` managing them. 
-The `Visualization` directory contains codes that focuses on visualization effects in the Unity scene.
-
-Text files in `BatchFiles/` and `CommandFiles/` aim to perform large-scale simulation experiments.  
-
-The `Experiment Results/` directory saves the result statistics of every experiment performed.
-
-The `TrackingSpaces/` directory contains text files that could configure the virtual and physical environments of the experiments, as well as avatars' initial poses.
-
-Files in `WaypointFiles/` contain coordinates of the waypoints.
+- `BatchFiles/` 및 `CommandFiles/`: 대규모 시뮬레이션 실험을 수행하기 위한 설정 텍스트 파일들이 저장됩니다.
+- `Experiment Results/`: 수행된 모든 실험의 결과 및 통계 자료가 저장되는 디렉토리입니다.
+- `TrackingSpaces/`: 실험의 가상 환경, 물리적 환경, 그리고 아바타의 초기 포즈를 구성하는 텍스트 파일들이 포함되어 있습니다.
+- `WaypointFiles/`: 실험 중 아바타가 지나가게 될 웨이포인트(waypoint)의 좌표들이 저장되어 있습니다.
 
 
-### Implement your own Redirectors and Resetters
+## Redirector / Resetter 구현
 
-To implement a new redirector, go to `Assets/OpenRDW/Scripts/Redirection/Redirectors` and create a new class that extends the `Redirector` class. Then simply implement the `InjectRedirection` abstract function. It is called each frame and sets several gains for redirection. On finishing this, add this redirector to the `RedirectionManager`.
+> Redirector는 미묘한 조작을, Resetter는 명시적 조작을 담당합니다. 새로운 알고리즘에 따라 Redirector 및 Resetter를 구현하고 이를 RedirectionManager에 추가합니다.
 
-Implementing a resetter in accordance with the redirector could be done similarly. Simply extend the `Resetter` class and implement a new class. You can refer to other resetters as examples. Also, don't forget to add it to the `RedirectionManager`. 
+**Redirector**
 
+`Assets/OpenRDW/Scripts/Redirection/Redirectors` 폴더 내에 `Redirector` 클래스의 하위 클래스 생성
 
-### Some key settings
+-> `InjectRedirection` 구현
 
-![structure](Visuals/structure.PNG)
+-> `Assets/OpenRDW/Scripts/Redirection/RedirectionManager.cs`에 새로 구현한 redirector를 추가, 다음 함수를 수정
 
-The ***OpenRDW*** gameobject serves as the main object. The ***Global Configuration*** component of it controls most of the crucial settings for the experiment.
+- `enum RedirectorChoice`
+- `RedirectorChoiceToRedirector`
+- `RedirectorToRedirectorChoice` 
+- `DecodeRedirector`
 
-In the ***Experiment*** section, the `Movement Controller` decides how to control the avatars' real movement. <u>Auto Pilot</u> is usually for simulations, while <u>HMD</u> supports real-user experiments. When the simulations `Run In Backstage`, they would run much faster, but without visualizations. It is recommended to always check it when performing batch experiments. You can load a pre-prepared command file by checking the `Load From Txt` box. Otherwise, the experiment configuration set by the UI panel will be used.  
+**Resetter**
 
-For real-user experiments, `Use Reset Panel` and `Use Crystal Waypoint` may turn out to be helpful.
+`Assets/OpenRDW/Scripts/Redirection/Resetters` 폴더 내에 `Resetter` 클래스의 하위 클래스 생성
 
-For simulations, `Path Length` decides how long each avatar needs to walk before the experiment ends. `DEFAULT_RANDOM_SEED` is the seed for waypoint generation. Some thresholds could be adjusted to match a variety of cases.
+-> `InitializeReset`, `InjectResetting` 구현
 
-The `Synchronized Reset` checkbox decides if all avatars start and end resets together. It could make a difference in a multi-user simulation scenario.
+-> `Assets/OpenRDW/Scripts/Redirection/RedirectionManager.cs`에 새로 구현한 resetter를 추가, 다음 함수를 수정
 
-In the ***Avatar*** section, the `Avatar Num` controls the number of avatars used in the experiment. If you only want to experiment on a single user, just set this value to 1. `Translation Speed` and `Rotation Speed` decide how fast an avatar can walk and turn.
-
-In the ***Tracking Space*** section, the `Tracking Space Choice` controls the shape of the physical tracking space, you can also load custom tracking space from a local txt file by setting this value to <u>File Path</u> and filling in the <u>Tracking Space File Path</u> slot. It is recommended for complex experiment environments. For the predefined space choices, the `Obstacle Type`, `Obstacle Height`, and `Square Width` control the detailed settings.
-
-In the ***Path*** section, the `Draw Real Trail` and the `Draw Virtual Trail` boxes control whether to show the real and virtual trails respectively. `Trail Visual Time` decides how long the the path trail will be reserved.
-
-In the ***Analysis*** section, the `Export Image` box controls whether to export the image of the walking process. 
-
-The ***Statistics Logger*** component focuses on experiment results. If the `Log Sample Variables` box is checked, then some variables during the experiment would be logged. The ***Image*** section of the component controls the image exported. The results are saved to the `Experiment Results/` directory by default.
-
-The child gameobject ***Redirected Avatar*** decides how to perform the redirection. `Redirector Choice` and `Resetter Choice` in the ***Redirector Manager*** component are the RDW controllers for the experiment. The `Path Seed Choice` decides the distribution of waypoints, and <u>Random Turn</u> is the default choice.
+- `enum ResetterChoice`
+- `ResetterChoiceToResetter` 
+- `ResetterToResetChoice`  
+- `DecodeResetter`
 
 
+## Tracking Space Settings
 
-During a visualized experiment, you can press the key `~` to have an overview of the physical spaces. Press `TAB` to switch to the virtual space. Moreover, you can press the number keys to have the following view of certain users, e.g. `0` for the first user.  Note that if one user has misaligned virtual and physical initial poses, the following view could work improperly. 
+> Tracking Space는 아바타가 보행하는 가상 환경 및 물리적 환경을 의미합니다. 각 환경에 대한 정보를 하나의 텍스트 파일로 작성합니다.
 
-[Video Capture](https://assetstore.unity.com/packages/tools/video/video-capture-75653) is integrated into the project. It allows you to record videos freely during the experiment. Somehow, the recording could degrade running performance, so you may try out other approaches if required.
+예시 파일: `TrackingSpaces\Separate3\3_squares.txt`
 
-
-
-### Tracking Space Settings
-
-One feature of this OpenRDW version is that it supports experiments in **multiple physical spaces**. To try out this, set the `Tracking Space Choice` to <u>File Path</u> and set the `Tracking Space File Path` to <u>TrackingSpaces/Separate3/3_squares.txt</u>.
-
-A tracking space file sets the physical and virtual spaces, as well as the initial configurations of each user for a simulation experiment. A sample is explained below:
+마크 (//) 를 통해 각 섹션을 구분
 
 ![trackingspacefile](Visuals/trackingspacefile.png)
 
-The first line suggests the number of users (or avatars) participating in the experiment.
-
-The first section configures the **virtual environment**. By default, a polygon space is defined by **coordinates of several vertices in a counter-clockwise manner**. A single closed virtual space is required in this case. However, you can set the coordinates far enough away from each other to make it "open". Additionally, several obstacles could be set to complicate the virtual environment, but it is totally optional. 
-
-The following sections configure the **physical environments**. Multiple physical spaces are supported, as well as multiple obstacles in a certain physical space. Each section represents one physical space, with multiple users walking in it. Initial positions and orientations are required for every user. The four coordinates represent the **physical location, physical orientation, virtual location, and virtual orientation** of a user, respectively. It is recommended that virtual poses align with physical ones, unless under special circumstances.
-
-Some marks are needed to split the sections. Do remember to add them properly.
-
-All waypoints of the avatars are supposed to fall in the closed virtual space. If the virtual space is narrow, you can set the `Path Seed Choice` to <u>Valid Path</u> instead of <u>Random Turn</u>. You could refer to the scripts `Others/TrackingSpaceGenerator.cs` and `Movement/VirtualPathGenerator.cs` for detailed implementations.
+- Avatar number: 실험에 참여하는 **사용자(또는 아바타)의 수**
+- Virtual space / Virtual obstacle: 가상 환경, 반시계 방향으로 꼭짓점 좌표를 나열
+- Physical space / Physical obstacle: 물리적 환경, 반시계 방향으로 꼭짓점 좌표를 나열, 마크(/) 를 통해 각 물리적 환경을 구분
+- User config: 각 사용자의 **물리적 위치, 물리적 방향, 가상 위치, 가상 방향**의 네 가지 좌표, 특별한 상황이 아니라면 가상 환경에서의 포즈를 물리적 환경의 포즈와 일치시키는 것이 권장됨
 
 
+## Batch Experiments
 
-### Batch Experiments
+> 실험에 사용할 redirector, resetter, tracking space 및 실험 조건을 텍스트 파일 형식으로 작성합니다. 이후 실험 시에 해당 텍스트 파일을 선택하여 실험을 진행합니다.
 
-It would be too annoying to manually run hundreds of experiments for comparing different RDW controllers. To tackle this, the project allows you to run a series of experiments once your **command file** is ready. Simply check the `Load From Txt` box in the ***Global Configuration*** component and select the command file you want when you start the experiments.
+[Command Files · yaoling1997/OpenRDW Wiki](https://github.com/yaoling1997/OpenRDW/wiki/Command-Files)
 
-A command file may look like this:
+예시: `\CommandFiles`, `\BatchFiles`
+
+에디터 내 `BatchExperimentGenerator` 오브젝트를 이용해 배치 파일을 커맨드 파일로 변환
+
+**Command File**
 
 <img src="Visuals/commandfile.PNG" alt="commandfile" style="zoom: 80%;" />
 
-To customize an experiment, several parameters are required. <u>Redirector</u> and <u>resetter</u> decide the controllers, while <u>pathSeedChoice</u> and <u>trackingSpaceChoice</u> decide waypoint patterns and experiment environments. A user is marked by <u>newUser</u> and could have its own <u>randomSeed</u> for its waypoint pattern (optional). These experiments would be run sequentially.
+- `redirector`
+- `resetter`
+- `pathSeedChoice`: 웨이포인트(Waypoint)의 생성 패턴
+	- `pathSeedChoice = randomturn`: 웨이포인트의 분포를 무작위로 결정 
+- `trackingSpaceChoice`: Tracking Space를 파일 경로 또는 사전 생성된 환경으로 지정
+- `pathLength`: 아바타가 보행하는 경로의 길이 (길수록 실험 시간이 길어짐)
+- `randomSeed = .. , newUser`: 실험에 참가하는 아바타를 추가 (랜덤 시드 값이 달라지면 해당 아바타의 웨이포인트 생성 패턴도 달라짐)
+- `end`: 실험 시도 (Trial) 1회 종료를 의미
 
-More examples could be found in the `CommandFiles/` directory.
-
-However, writing these command texts manually still poses trouble facing large-scale experiments. This is when a **batch file** comes into play:
+**Batch file**
 
 <img src="Visuals/batchfile.PNG" alt="batchfile" style="zoom:80%;" />
 
-A batch file may seem similar to a command file in some manners. This time, you need to set a series of values for some crucial parameters instead of one. It could result in **cross-style** experiments, which are suitable for comparing the performance of different controllers in several environments. For example, if repeated trials are required, simply set the <u>trialsCount</u> parameter.
 
-Batch files must be transformed to command files to be recognized. The gameobject ***BatchExperimentGenerator*** provides this service. You can select the paths and generate the command files in the Unity Editor.
+## Global Configuration
 
-More examples could be found in the `BatchFiles/` directory.
+> command file과 같은 실험 조건 설정을 에디터 UI 상에서 OpenRDW 오브젝트를 통해 진행할 수 있습니다. 
 
+![structure](Visuals/structure.PNG)
 
+에디터 - OpenRDW 오브젝트에서 설정
 
-### About the Virtual World
+**Experiment (실험 설정)**
+- `Movement Controller`: 아바타의 실제 움직임을 제어하는 방식으로, 시뮬레이션에서는 주로 **Auto Pilot**을 사용하고, 실제 사용자 대상 실험에서는 **HMD**를 사용합니다.
+- `Synchronized Reset`: 다중 사용자 시뮬레이션에서 중요한 설정으로, **모든 아바타가 리셋을 동시에 시작하고 종료**할지를 결정합니다.
+- `Run In Backstage`: 체크할 경우 시각화 없이 백그라운드에서 실행되어 시뮬레이션 속도가 매우 빨라지므로 **일괄 실험(batch experiments) 시 권장**됩니다. 체크하지 않을 경우 시뮬레이션 과정을 눈으로 확인할 수 있습니다.
+- `Load From Txt`: 체크 시 UI 패널의 설정 대신 **미리 준비된 명령 파일(command file)** 을 로드하여 실험을 진행합니다. Play 버튼을 누르면 파일 탐색기에서 명령 파일을 선택할 수 있습니다.
+- `Use Reset Panel`, `Use Crystal Waypoint`: 실제 사용자 실험 전용 설정
+- `Path Length`, `DEFAULT_RANDOM_SEED`: 시뮬레이션 전용 설정
 
-The ***Virtual World*** gameobject could be customized to meet the requirements of any experiment. The default environment contains a simple maze and a large-scale terrain. When `Use VE Collision` is checked, avatars could actually 'push' the virtual maze and alter its position and direction for better visualization. This is quite an useful feature, and details could be found in `Movement/VECollisionController.cs` and files related.
+**Avatar (아바타 설정)**
+- `Avatar Num`: 실험에 사용될 아바타의 수를 제어하며, 단일 사용자 실험의 경우 1로 설정합니다.
+- `Translation Speed`, `Rotation Speed`: 아바타의 걷는 속도와 회전 속도를 결정합니다.
 
-The virtual environment is designed to optimize the user experience in a real-user study. Crystal-shaped waypoints and a user-friendly reset panel could also be utilized in real-user cases. However, the virtual environment isn't necessary for simulations and can be disabled.
+**Tracking Space (트래킹 공간 설정)**
+- `Tracking Space Choice`: 물리적 트래킹 공간으로 커스텀 환경을 사용할지, 사전 정의된 환경을 사용할지 결정합니다.
+- `Tracking Space File Path`: 물리적 트래킹 공간으로 커스텀 환경을 사용할 경우, 이를 **File Path**로 설정한 뒤 **Tracking Space File Path** 슬롯에 로컬 텍스트 파일을 지정하여 사용자 지정 공간을 불러올 수 있습니다.
+- `Obstacle Type`, `Obstacle Height`, `Square Width`: 사전 정의된 공간을 사용할 경우 **Obstacle Type(장애물 유형)**, **Obstacle Height(장애물 높이)**, **Square Width(사각형 너비)** 를 통해 세부 설정을 제어합니다.
 
+**Path (경로 설정)**
+- `Draw Real Trail`, `Draw Virtual Trail`: 실제 경로와 가상 경로의 궤적을 화면에 표시할지 여부를 제어합니다.
+- `Trail Visual Time`: 경로 궤적이 화면에 유지되는 시간을 결정합니다.
 
+**Analysis 및 Statistics Logger (분석 및 로그 설정)**
+- `Export Image`: 걷기 과정의 이미지 내보내기 여부를 제어합니다.
+- `statisticsLogger`: **Log Sample Variables**를 체크하면 실험 중 발생하는 변수들을 기록하며, 내보낸 이미지와 실험 결과는 기본적으로 `Experiment Results/` 디렉토리에 저장됩니다.
 
-### About SeparateSpace Redirector/Resetter
-
-The controller is an implementation of the paper [Multi-User Redirected Walking in Separate Physical Spaces for Online VR Scenarios](https://arxiv.org/abs/2210.05356).
-
-It works under a specific circumstance:
-
-- **Multiple users locate themselves in separate physical spaces**, with one user in each physical space.
-- The users are performing tasks in **the same open (boundless) virtual space**.
-- The tasks are related, so users must **start and end a reset synchronously**. It means that when any user triggers a reset, other users must reset too. And the synchronized reset couldn't end until everyone faces his/her desired direction. The suggested ideology is called '**locomotion fairness**'.
-- All users **walk at a constant speed in the virtual space**, instead of the physical space. 
-
-Note that the scripts need to be slightly adjusted in accordance with the change of physical spaces. See `Redirection/Redirectors/SeparateSpace_Redirector.cs` for details (A 'TODO' mark could guide you to the part).
-
-
-
-### Some Tips
-
-**IMPORTANT: When experimenting in HMD mode, remember to press 'R' to start.**
-
-Experiments can be manually ended by pressing 'Q'.
-
-Running experiments backstage blocks the main UI process to speed up the processing, and you couldn't check how it goes. So it would be better to double-check before running a time-consuming simulation.
-
-**APF-related redirectors may not be robust to the reset buffer**. It is recommended that `RESET_TRIGGER_BUFFER` be set to at least <u>0.4</u> to get rid of malfunctioning. 
-
-Always set the `Avatar Num`, `Tracking Space Choice`, `Redirector Choice`, and `Resetter Choice` correctly, or something unexpected could happen.
-
-We use the [SteamVR Plugin](https://assetstore.unity.com/packages/tools/integration/steamvr-plugin-32647) for HMD development. For those who wish to conduct a live-user study, [SteamVR](https://store.steampowered.com/app/250820/SteamVR/) may be required. For HTC Vive HMD users, the Vive toolkits may also be required. 
-
-The networking features supported by PUN2 only synchronized avatars' transform (position and orientation). It might be tricky if you need other data to be synchronized.
-
-The experiment configurations may not be robust to special cases. If you find the experiment results unexpected, try to refer to the samples and double-check your settings. You can report the issues if obvious bugs occur.
+**Redirected Avatar (OpenRDW의 child object)**
+- `Redirector Choice`: subtle redirection controller의 타입을 결정
+- `Resetter Choice`: overt redirection controller의 타입을 결정
+- `Path Seed Choice`: waypoints 의 분포를 결정하는 랜덤 시드
 
 
+## Experiment Results
 
-### Acknowledgement
+> Play 버튼을 눌러 실험을 진행한 후, 실험 결과를 csv 파일 및 그래프를 통해 확인합니다.
 
-This project is developed on top of the repository [OpenRDW](https://github.com/yaoling1997/OpenRDW) as well as its paper [OpenRDW: A Redirected Walking Library and Benchmark with Multi-User, Learning-based Functionalities and State-of-the-art Algorithms](https://ieeexplore.ieee.org/abstract/document/9583831).
+실험 결과는 `../Project Root/Experiment Results`에 저장됨
 
-This project uses several assets from the [Unity Asset Store](https://assetstore.unity.com/):
-
-- [SteamVR Plugin](https://assetstore.unity.com/packages/tools/integration/steamvr-plugin-32647)
-- [PUN 2 - FREE](https://assetstore.unity.com/packages/tools/network/pun-2-free-119922)
-- [Video Capture](https://assetstore.unity.com/packages/tools/video/video-capture-75653)
-- [3D Realistic Terrain Free](https://assetstore.unity.com/packages/3d/environments/landscapes/3d-realistic-terrain-free-182593)
-- [Translucent Crystals](https://assetstore.unity.com/packages/3d/environments/fantasy/translucent-crystals-106274)
+- `/Summary Statistics`: 실험 전체 결과 요약, 각 실험 시도(Trial)별로 아바타마다 실험 지표를 기록
+- `/Sampled Metrics`: 상세 지표를 프레임 단위로 기록
+	- Sampling Frequency: 에디터의 Global Configuration - Statistics Logger 에서 변경 가능
+- `/Graph`: 물리적 환경에서 아바타의 진행 경로를 시각화한 그래프
 
 
+## Acknowledgments
 
-### Citation
+This project is built upon and inspired by the following repositories:
 
-If you find this project helpful for your research, please consider citing:
+[OpenRDW2](https://github.com/omegafantasy/OpenRDW2)
 
-```
-S. -Z. Xu, J. -H. Liu, M. Wang, F. -L. Zhang and S. -H. Zhang, "Multi-User Redirected Walking in Separate Physical Spaces for Online VR Scenarios," in IEEE Transactions on Visualization and Computer Graphics, vol. 30, no. 4, pp. 1916-1926, April 2024, doi: 10.1109/TVCG.2023.3251648.
-```
-
-or
-
-```
-@ARTICLE{xu2024multi-user,
-  author={Xu, Sen-Zhe and Liu, Jia-Hong and Wang, Miao and Zhang, Fang-Lue and Zhang, Song-Hai},
-  journal={IEEE Transactions on Visualization and Computer Graphics}, 
-  title={Multi-User Redirected Walking in Separate Physical Spaces for Online VR Scenarios}, 
-  year={2024},
-  volume={30},
-  number={4},
-  pages={1916-1926},
-  keywords={Legged locomotion;Space vehicles;Games;Aerospace electronics;Task analysis;Reinforcement learning;Real-time systems;Redirected walking;multi-user;online VR;fairness},
-  doi={10.1109/TVCG.2023.3251648}
-}
-```
-
+[OpenRDW](https://github.com/yaoling1997/OpenRDW)
